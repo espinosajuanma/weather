@@ -11,3 +11,6 @@ var _weather string
 
 //go:embed text/en/get.md
 var _get string
+
+//go:embed text/en/updated.md
+var _updated string

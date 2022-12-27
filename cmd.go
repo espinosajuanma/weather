@@ -25,6 +25,7 @@ var Cmd = &Z.Cmd{
 	Commands: []*Z.Cmd{
 		getCmd,
 		help.Cmd, vars.Cmd, conf.Cmd, // common
+		updatedCmd,
 	},
 	Shortcuts: Z.ArgMap{
 		`lat`:   {`var`, `set`, `lat`},
@@ -33,7 +34,7 @@ var Cmd = &Z.Cmd{
 		`emoji`: {`var`, `set`, `emoji`},
 		`unit`:  {`var`, `set`, `unit`},
 	},
-	Version:     `v0.0.1`,
+	Version:     `v0.0.2`,
 	Source:      `https://github.com/espinosajuanma/weather`,
 	Issues:      `https://github.com/espinosajuanma/weather/issues`,
 	Summary:     help.S(_weather),
@@ -62,7 +63,7 @@ var getCmd = &Z.Cmd{
 		}
 		_, err = strconv.ParseFloat(lon, 64)
 		if err != nil {
-			return fmt.Errorf("Please set a correct latitude. Use help command.")
+			return fmt.Errorf("Please set a correct longitude. Use help command.")
 		}
 
 		agent, _ := x.Caller.Get("agent")
@@ -97,12 +98,32 @@ var getCmd = &Z.Cmd{
 			}
 
 			Z.Vars.Set("expires", res.Expires.Format(time.RFC1123))
+			Z.Vars.Set("updated", res.LastModified.Format(time.RFC1123))
 
 			current = res.GetFormat(celsius)
 			Z.Vars.Set("temp", current)
 		}
 
 		fmt.Printf("%s %s\n", emoji, current)
+
+		return nil
+	},
+}
+
+var updatedCmd = &Z.Cmd{
+	Name:        `updated`,
+	Commands:    []*Z.Cmd{help.Cmd},
+	Summary:     help.S(_updated),
+	Description: help.D(_updated),
+
+	Call: func(x *Z.Cmd, args ...string) error {
+		updated := Z.Vars.Get("updated")
+		if updated == "" {
+			return fmt.Errorf("There is no updated weather")
+		}
+
+		t, _ := time.Parse(time.RFC1123, updated)
+		fmt.Println(t.Local().Format(time.UnixDate))
 
 		return nil
 	},
